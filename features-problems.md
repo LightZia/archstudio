@@ -1,0 +1,10 @@
+in the admin panel when i when i create a student it is visible in the student list but when i go to the student portal and login with the phone number it is not visible in the student portal 
+in the admin panel when i create a course i am not able to upload the thumbnail image and certificate template image
+in the admin panel when i try to edit a course it is not editing 
+when i create a student in the admin panel it is visible in the student list but when i logout as admin and login again the new created student is not visible in the student list , everything i do as an admin update things in the firebase server and everytime i login as admin it should show the updated  data only.
+the should be an option in the admin panel that i can assign and upload individual certificates to students and also i should be able to see the uploaded certificates in the student portal and the students can download it in the form of pdf , this pdf will be ssaved in the firebase storage and the link will be stored in the firestore database
+in the admin ppanel the course management is showing 45 students enrolled,32 students enrolled,28 students enrolled which is not true the website should fetch the information of the students  from the website and only should the real info of how many students if enrolled in each course
+and also the server should store the info of the courses that how many courses are there and how many students are enrolled in each course ,  the name of  the course , thumbnail, certificates , template, course description, course duration, course status and the admin can edit all this info
+when i mark a student as completed in the admin panel it is not updating in the student portal , the student is not able to see the completed course and the certificate it should update in the student portal and the student should be able to see the completed course and the certificate
+
+

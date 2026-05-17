@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cloudinary Media Uploader - Images & Videos</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 40px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: transform 0.3s ease;
+    }
+
+    .container:hover {
+      transform: translateY(-5px);
+    }
+
+    .title {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #2d3748;
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .media-type-selector {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      background: rgba(102, 126, 234, 0.1);
+      border-radius: 16px;
+      padding: 6px;
+    }
+
+    .media-type-btn {
+      flex: 1;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: transparent;
+      color: #4a5568;
+    }
+
+    .media-type-btn.active {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .upload-area {
+      border: 3px dashed #cbd5e0;
+      border-radius: 16px;
+      padding: 40px 20px;
+      text-align: center;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    }
+
+    .upload-area:hover {
+      border-color: #667eea;
+      background: linear-gradient(135deg, #ebf8ff 0%, #e6fffa 100%);
+      transform: scale(1.02);
+    }
+
+    .upload-area.dragover {
+      border-color: #667eea;
+      background: linear-gradient(135deg, #ebf8ff 0%, #e6fffa 100%);
+      transform: scale(1.02);
+    }
+
+    .upload-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.6;
+      transition: all 0.3s ease;
+    }
+
+    .upload-area:hover .upload-icon {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+
+    .upload-text {
+      color: #4a5568;
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .upload-subtext {
+      color: #718096;
+      font-size: 14px;
+    }
+
+    #fileInput {
+      position: absolute;
+      opacity: 0;
+      width: 500%;
+      height: 500%;
+      cursor: pointer;
+    }
+
+    .compression-section {
+      margin-top: 24px;
+      padding: 20px;
+      background: rgba(102, 126, 234, 0.05);
+      border-radius: 16px;
+      border: 1px solid rgba(102, 126, 234, 0.1);
+      display: none;
+    }
+
+    .compression-title {
+      color: #2d3748;
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .compression-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+      gap: 8px;
+    }
+
+    .compression-option {
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 12px 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 14px;
+      font-weight: 500;
+      color: #4a5568;
+    }
+
+    .compression-option:hover {
+      border-color: #667eea;
+      background: #f7fafc;
+      transform: translateY(-2px);
+    }
+
+    .compression-option.active {
+      border-color: #667eea;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    .video-compression {
+      display: none;
+    }
+
+    .video-compression .compression-options {
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    }
+
+    .upload-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .upload-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .upload-btn:active {
+      transform: translateY(0);
+    }
+
+    .upload-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .loading-spinner {
+      display: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid transparent;
+      border-top: 2px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .output {
+      margin-top: 30px;
+      padding: 24px;
+      background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%);
+      border-radius: 16px;
+      border: 1px solid rgba(72, 187, 120, 0.2);
+      display: none;
+      animation: slideIn 0.5s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .success-icon {
+      color: #38a169;
+      font-size: 24px;
+      margin-right: 8px;
+    }
+
+    .success-text {
+      color: #2d3748;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+    }
+
+    .url-container {
+      background: white;
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .url-label {
+      color: #4a5568;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .url-code {
+      background: #f7fafc;
+      padding: 12px;
+      border-radius: 8px;
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 13px;
+      color: #2d3748;
+      word-break: break-all;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 12px;
+    }
+
+    .copy-btn {
+      background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .copy-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 15px rgba(56, 161, 105, 0.4);
+    }
+
+    .copy-btn.copied {
+      background: linear-gradient(135deg, #2f855a 0%, #38a169 100%);
+    }
+
+    .preview-media {
+      width: 100%;
+      max-width: 300px;
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+      margin: 0 auto;
+      display: block;
+    }
+
+    .preview-media:hover {
+      transform: scale(1.05);
+    }
+
+    .error {
+      background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+      border: 1px solid rgba(245, 101, 101, 0.3);
+      color: #c53030;
+    }
+
+    .file-info {
+      display: none;
+      margin-top: 16px;
+      padding: 16px;
+      background: rgba(102, 126, 234, 0.1);
+      border-radius: 12px;
+      border: 1px solid rgba(102, 126, 234, 0.2);
+    }
+
+    .file-name {
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 4px;
+    }
+
+    .file-size {
+      color: #718096;
+      font-size: 14px;
+    }
+
+    .size-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 12px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 8px;
+    }
+
+    .original-size {
+      color: #718096;
+      font-size: 14px;
+    }
+
+    .compressed-size {
+      color: #667eea;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .progress-bar {
+      display: none;
+      width: 100%;
+      height: 6px;
+      background: rgba(102, 126, 234, 0.2);
+      border-radius: 3px;
+      margin-top: 16px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .embed-code-container {
+      margin-top: 16px;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 24px;
+        margin: 10px;
+      }
+      
+      .title {
+        font-size: 24px;
+      }
+      
+      .upload-area {
+        padding: 30px 15px;
+      }
+
+      .compression-options {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="title">📤 Media Uploader Pro</h1>
+    
+    <div class="media-type-selector">
+      <button class="media-type-btn active" id="imageBtn" onclick="switchMediaType('image')">
+        🖼️ Images
+      </button>
+      <button class="media-type-btn" id="videoBtn" onclick="switchMediaType('video')">
+        🎥 Videos
+      </button>
+    </div>
+    
+    <div class="upload-area" id="uploadArea">
+      <div class="upload-icon" id="uploadIcon">☁️</div>
+      <div class="upload-text" id="uploadText">Drop your image here</div>
+      <div class="upload-subtext" id="uploadSubtext">or click to browse files</div>
+      <input type="file" id="fileInput" accept="image/*">
+    </div>
+
+    <div class="file-info" id="fileInfo">
+      <div class="file-name" id="fileName"></div>
+      <div class="file-size" id="fileSize"></div>
+    </div>
+
+    <div class="compression-section" id="compressionSection">
+      <div class="compression-title" id="compressionTitle">
+        🗜️ Choose compression size
+      </div>
+      <div class="compression-options image-compression" id="imageCompressionOptions">
+        <div class="compression-option active" data-size="100">100KB</div>
+        <div class="compression-option" data-size="200">200KB</div>
+        <div class="compression-option" data-size="300">300KB</div>
+        <div class="compression-option" data-size="400">400KB</div>
+        <div class="compression-option" data-size="500">500KB</div>
+        <div class="compression-option" data-size="1024">1MB</div>
+      </div>
+      <div class="compression-options video-compression" id="videoCompressionOptions">
+        <div class="compression-option active" data-quality="auto">Auto</div>
+        <div class="compression-option" data-quality="720p">720p</div>
+        <div class="compression-option" data-quality="480p">480p</div>
+        <div class="compression-option" data-quality="360p">360p</div>
+      </div>
+    </div>
+
+    <button class="upload-btn" id="uploadBtn" onclick="upload()">
+      <div class="loading-spinner" id="spinner"></div>
+      <span id="btnText">Upload & Compress</span>
+    </button>
+
+    <div class="progress-bar" id="progressBar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div class="output" id="output"></div>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const compressionSection = document.getElementById('compressionSection');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const spinner = document.getElementById('spinner');
+    const btnText = document.getElementById('btnText');
+    const output = document.getElementById('output');
+    const progressBar = document.getElementById('progressBar');
+    const progressFill = document.getElementById('progressFill');
+
+    let selectedFile = null;
+    let targetSize = 100; // Default 100KB for images
+    let videoQuality = 'auto'; // Default quality for videos
+    let currentMediaType = 'image';
+
+    function switchMediaType(type) {
+      currentMediaType = type;
+      
+      // Update buttons
+      document.getElementById('imageBtn').classList.toggle('active', type === 'image');
+      document.getElementById('videoBtn').classList.toggle('active', type === 'video');
+      
+      // Update file input accept
+      fileInput.accept = type === 'image' ? 'image/*' : 'video/*';
+      
+      // Update UI text
+      const uploadText = document.getElementById('uploadText');
+      const uploadSubtext = document.getElementById('uploadSubtext');
+      const uploadIcon = document.getElementById('uploadIcon');
+      
+      if (type === 'image') {
+        uploadText.textContent = 'Drop your image here';
+        uploadSubtext.textContent = 'or click to browse files';
+        uploadIcon.textContent = '🖼️';
+      } else {
+        uploadText.textContent = 'Drop your video here';
+        uploadSubtext.textContent = 'or click to browse files';
+        uploadIcon.textContent = '🎥';
+      }
+      
+      // Show/hide compression options
+      document.getElementById('imageCompressionOptions').style.display = 
+        type === 'image' ? 'grid' : 'none';
+      document.getElementById('videoCompressionOptions').style.display = 
+        type === 'video' ? 'grid' : 'none';
+      
+      // Update compression title
+      const compressionTitle = document.getElementById('compressionTitle');
+      compressionTitle.textContent = type === 'image' ? 
+        '🗜️ Choose compression size' : '🎥 Choose video quality';
+      
+      // Reset file selection
+      selectedFile = null;
+      fileInput.value = '';
+      fileInfo.style.display = 'none';
+      compressionSection.style.display = 'none';
+      output.style.display = 'none';
+    }
+
+    // Image compression option selection
+    document.querySelectorAll('#imageCompressionOptions .compression-option').forEach(option => {
+      option.addEventListener('click', () => {
+        document.querySelectorAll('#imageCompressionOptions .compression-option').forEach(opt => opt.classList.remove('active'));
+        option.classList.add('active');
+        targetSize = parseInt(option.dataset.size);
+      });
+    });
+
+    // Video quality option selection
+    document.querySelectorAll('#videoCompressionOptions .compression-option').forEach(option => {
+      option.addEventListener('click', () => {
+        document.querySelectorAll('#videoCompressionOptions .compression-option').forEach(opt => opt.classList.remove('active'));
+        option.classList.add('active');
+        videoQuality = option.dataset.quality;
+      });
+    });
+
+    // Drag and drop functionality
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        const file = files[0];
+        if (validateFileType(file)) {
+          fileInput.files = files;
+          handleFileSelect();
+        }
+      }
+    });
+
+    fileInput.addEventListener('change', handleFileSelect);
+
+    function validateFileType(file) {
+      const isImage = file.type.startsWith('image/');
+      const isVideo = file.type.startsWith('video/');
+      
+      if (currentMediaType === 'image' && !isImage) {
+        showError('Please select an image file');
+        return false;
+      }
+      
+      if (currentMediaType === 'video' && !isVideo) {
+        showError('Please select a video file');
+        return false;
+      }
+      
+      return true;
+    }
+
+    function handleFileSelect() {
+      const file = fileInput.files[0];
+      if (file && validateFileType(file)) {
+        selectedFile = file;
+        fileName.textContent = file.name;
+        fileSize.textContent = formatFileSize(file.size);
+        fileInfo.style.display = 'block';
+        compressionSection.style.display = 'block';
+        
+        uploadBtn.style.display = 'block';
+        output.style.display = 'none';
+      }
+    }
+
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function compressImage(file, targetSizeKB) {
+      return new Promise((resolve) => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        
+        img.onload = function() {
+          let { width, height } = img;
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          ctx.clearRect(0, 0, width, height);
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          const hasTransparency = checkForTransparency(ctx, width, height);
+          const outputFormat = hasTransparency ? 'image/png' : 'image/jpeg';
+          
+          let minQuality = 0.1;
+          let maxQuality = 0.9;
+          let bestBlob = null;
+          
+          function tryCompression(quality) {
+            canvas.toBlob((blob) => {
+              const sizeKB = blob.size / 1024;
+              
+              if (sizeKB <= targetSizeKB * 1.1) {
+                bestBlob = blob;
+                if (maxQuality - minQuality > 0.01) {
+                  minQuality = quality;
+                  tryCompression((minQuality + maxQuality) / 2);
+                } else {
+                  resolve(bestBlob);
+                }
+              } else {
+                if (maxQuality - minQuality > 0.01) {
+                  maxQuality = quality;
+                  tryCompression((minQuality + maxQuality) / 2);
+                } else {
+                  width = Math.floor(width * 0.9);
+                  height = Math.floor(height * 0.9);
+                  canvas.width = width;
+                  canvas.height = height;
+                  ctx.clearRect(0, 0, width, height);
+                  ctx.drawImage(img, 0, 0, width, height);
+                  
+                  minQuality = 0.1;
+                  maxQuality = 0.9;
+                  tryCompression(0.7);
+                }
+              }
+            }, outputFormat, quality);
+          }
+          
+          tryCompression(0.7);
+        };
+        
+        img.src = URL.createObjectURL(file);
+      });
+    }
+
+    function checkForTransparency(ctx, width, height) {
+      const imageData = ctx.getImageData(0, 0, width, height);
+      const data = imageData.data;
+      
+      for (let i = 3; i < data.length; i += 4) {
+        if (data[i] < 255) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    async function copyToClipboard(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (err) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+          return true;
+        } catch (err) {
+          document.body.removeChild(textArea);
+          return false;
+        }
+      }
+    }
+
+    async function upload() {
+      if (!selectedFile) {
+        showError('Please select a file first');
+        return;
+      }
+
+      uploadBtn.disabled = true;
+      spinner.style.display = 'inline-block';
+      progressBar.style.display = 'block';
+
+      try {
+        let fileToUpload = selectedFile;
+        let originalSize = selectedFile.size;
+        
+        if (currentMediaType === 'image') {
+          btnText.textContent = 'Compressing image...';
+          progressFill.style.width = '25%';
+          fileToUpload = await compressImage(selectedFile, targetSize);
+        } else {
+          btnText.textContent = 'Processing video...';
+          progressFill.style.width = '15%';
+        }
+
+        const formData = new FormData();
+        formData.append("file", fileToUpload, selectedFile.name);
+        formData.append("upload_preset", "yash-preset");
+        formData.append("resource_type", currentMediaType === 'image' ? "image" : "video");
+        
+        // Add video-specific parameters
+        if (currentMediaType === 'video' && videoQuality !== 'auto') {
+          formData.append("transformation", `q_${videoQuality}`);
+        }
+
+        btnText.textContent = 'Uploading to Cloudinary...';
+        progressFill.style.width = '50%';
+
+        const response = await fetch("https://api.cloudinary.com/v1_1/dprxaeuwi/upload", {
+          method: "POST",
+          body: formData
+        });
+
+        progressFill.style.width = '90%';
+        const data = await response.json();
+
+        if (data.secure_url) {
+          progressFill.style.width = '100%';
+          setTimeout(() => {
+            showSuccess(data.secure_url, originalSize, fileToUpload.size, data);
+            progressBar.style.display = 'none';
+            progressFill.style.width = '0%';
+          }, 500);
+        } else {
+          throw new Error('Upload failed');
+        }
+      } catch (error) {
+        console.error('Upload error:', error);
+        showError('Upload failed. Please try again.');
+        progressBar.style.display = 'none';
+        progressFill.style.width = '0%';
+      } finally {
+        uploadBtn.disabled = false;
+        spinner.style.display = 'none';
+        btnText.textContent = currentMediaType === 'image' ? 'Upload & Compress' : 'Upload Video';
+      }
+    }
+
+    function showSuccess(url, originalSize, processedSize, cloudinaryData) {
+      let sizeInfo = '';
+      let preview = '';
+      let embedCode = '';
+      
+      if (currentMediaType === 'image') {
+        const compressionRatio = ((originalSize - processedSize) / originalSize * 100).toFixed(1);
+        sizeInfo = `
+          <div class="size-info">
+            <div class="original-size">Original: ${formatFileSize(originalSize)}</div>
+            <div class="compressed-size">Compressed: ${formatFileSize(processedSize)} (${compressionRatio}% smaller)</div>
+          </div>
+        `;
+        preview = `<img src="${url}" class="preview-media" alt="Uploaded image">`;
+        embedCode = `<img src="${url}" alt="Image" style="max-width: 100%; height: auto;">`;
+      } else {
+        sizeInfo = `
+          <div class="size-info">
+            <div class="original-size">File size: ${formatFileSize(originalSize)}</div>
+            <div class="compressed-size">Duration: ${cloudinaryData.duration ? Math.round(cloudinaryData.duration) + 's' : 'N/A'}</div>
+          </div>
+        `;
+        preview = `<video src="${url}" class="preview-media" controls></video>`;
+        embedCode = `<video controls style="max-width: 100%; height: auto;">
+  <source src="${url}" type="video/mp4">
+  Your browser does not support the video tag.
+</video>`;
+      }
+      
+      output.className = 'output';
+      output.innerHTML = `
+        <div class="success-text">
+          <span class="success-icon">✅</span>
+          ${currentMediaType.charAt(0).toUpperCase() + currentMediaType.slice(1)} uploaded successfully!
+        </div>
+        ${sizeInfo}
+        <div class="url-container">
+          <div class="url-label">Direct URL</div>
+          <div class="url-code">${url}</div>
+          <button class="copy-btn" onclick="handleCopy('${url}', this)">
+            📋 Copy Link
+          </button>
+        </div>
+        <div class="url-container embed-code-container">
+          <div class="url-label">HTML Embed Code</div>
+          <div class="url-code">${embedCode.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+          <button class="copy-btn" onclick="handleCopy(\`${embedCode}\`, this)">
+            📋 Copy Embed Code
+          </button>
+        </div>
+        ${preview}
+      `;
+      output.style.display = 'block';
+    }
+
+    async function handleCopy(text, button) {
+      const success = await copyToClipboard(text);
+      
+      if (success) {
+        button.innerHTML = '✅ Copied!';
+        button.classList.add('copied');
+        
+        setTimeout(() => {
+          button.innerHTML = '📋 Copy Link';
+          button.classList.remove('copied');
+        }, 2000);
+      } else {
+        button.innerHTML = '❌ Copy Failed';
+        setTimeout(() => {
+          button.innerHTML = '📋 Copy Link';
+        }, 2000);
+      }
+    }
+
+    function showError(message) {
+      output.className = 'output error';
+      output.innerHTML = `
+        <div class="success-text">
+          <span class="success-icon">❌</span>
+          ${message}
+        </div>
+      `;
+      output.style.display = 'block';
+    }
+  </script>
+</body>
+</html>
