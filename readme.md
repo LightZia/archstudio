@@ -279,8 +279,8 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-your_measurement_id
 ### Admin Credentials
 
 ```env
-ADMIN_EMAIL=admin@archstudio.com
-ADMIN_PASSWORD=your_secure_password_here
+ADMIN_EMAIL=demo@archstudio.com
+ADMIN_PASSWORD=your_demo_password_here
 ```
 
 ### Firebase Admin SDK (Server-Side)

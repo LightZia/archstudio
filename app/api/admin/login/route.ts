@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 
 // Default credentials if env vars not set (for demo purposes only)
-const DEFAULT_EMAIL = "admin@archstudio.com"
-const DEFAULT_PASSWORD = "admin123"
+const DEFAULT_EMAIL = "demo@archstudio.com"
+const DEFAULT_PASSWORD = "demo123"
 
 export async function POST(request: NextRequest) {
   try {

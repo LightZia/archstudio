@@ -85,7 +85,7 @@ export function AdminLogin({ onLogin, onBack }: AdminLoginProps) {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@archstudio.com"
+                  placeholder="demo@archstudio.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10 h-11 bg-input border-border"
@@ -157,7 +157,7 @@ export function AdminLogin({ onLogin, onBack }: AdminLoginProps) {
               Default credentials (set ADMIN_EMAIL & ADMIN_PASSWORD in .env.local to override):
               <br />
               <span className="font-mono text-foreground/80">
-                admin@archstudio.com / admin123
+                demo@archstudio.com / demo123
               </span>
             </p>
           </div>
