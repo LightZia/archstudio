@@ -2,11 +2,18 @@ import { initializeApp, getApps, cert, type App } from "firebase-admin/app"
 import { getAuth, type Auth } from "firebase-admin/auth"
 import { getFirestore, type Firestore } from "firebase-admin/firestore"
 
+import fs from 'fs'
+import path from 'path'
+
 // Firebase Admin SDK configuration (server-side only)
 // Used for server actions, API routes, and admin operations
 
+// Try loading service account from file first
+const serviceAccountPath = path.join(process.cwd(), 'serviceaccountkey.json')
+const hasServiceAccountFile = fs.existsSync(serviceAccountPath)
+
 // Check if Firebase Admin is configured
-const isFirebaseAdminConfigured = Boolean(
+const isFirebaseAdminConfigured = hasServiceAccountFile || Boolean(
   process.env.FIREBASE_ADMIN_PROJECT_ID &&
   process.env.FIREBASE_ADMIN_CLIENT_EMAIL &&
   process.env.FIREBASE_ADMIN_PRIVATE_KEY
@@ -30,17 +37,24 @@ function initializeFirebaseAdmin() {
   }
 
   if (getApps().length === 0) {
-    const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID!
-    const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL!
-    const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY!.replace(/\\n/g, "\n")
+    if (hasServiceAccountFile) {
+      const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'))
+      adminApp = initializeApp({
+        credential: cert(serviceAccount),
+      })
+    } else {
+      const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID!
+      const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL!
+      const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY!.replace(/\\n/g, "\n")
 
-    adminApp = initializeApp({
-      credential: cert({
-        projectId,
-        clientEmail,
-        privateKey,
-      }),
-    })
+      adminApp = initializeApp({
+        credential: cert({
+          projectId,
+          clientEmail,
+          privateKey,
+        }),
+      })
+    }
   } else {
     adminApp = getApps()[0]
   }

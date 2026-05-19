@@ -5,7 +5,8 @@ import { Phone, Award, Clock, Download, Sparkles, CheckCircle2, Loader2 } from "
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { db } from "@/lib/firebase"
+import { db, auth } from "@/lib/firebase"
+import { signInWithEmailAndPassword, signOut } from "firebase/auth"
 import {
   collection,
   query,
@@ -27,7 +28,8 @@ interface StudentCourse {
 }
 
 export function StudentPortal() {
-  const [phoneNumber, setPhoneNumber] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [isVerified, setIsVerified] = useState(false)
   const [studentName, setStudentName] = useState("")
   const [courses, setCourses] = useState<StudentCourse[]>([])
@@ -81,24 +83,30 @@ export function StudentPortal() {
     setIsLoading(true)
 
     try {
-      if (!db) {
-        setError("Database not configured. Please contact support.")
+      if (!db || !auth) {
+        setError("Firebase is not configured. Please contact support.")
         setIsLoading(false)
         return
       }
 
-      // Normalise phone input (trim whitespace)
-      const phone = phoneNumber.trim()
+      // 1. Authenticate with Firebase
+      const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password)
+      const user = userCredential.user
 
-      // Query students by phone number
-      const studentsQ = query(
-        collection(db, "students"),
-        where("phone", "==", phone)
-      )
-      const studentsSnap = await getDocs(studentsQ)
+      // 2. Query students by email or uid
+      let studentsQ = query(collection(db, "students"), where("uid", "==", user.uid))
+      let studentsSnap = await getDocs(studentsQ)
+
+      // Fallback to email if uid isn't set (for some reason)
+      if (studentsSnap.empty) {
+        studentsQ = query(collection(db, "students"), where("email", "==", email.trim()))
+        studentsSnap = await getDocs(studentsQ)
+      }
 
       if (studentsSnap.empty) {
-        setError("No student found with this phone number. Please try again.")
+        setError("No student record found for this account. Please contact support.")
+        // Optionally sign out the user if no record is found
+        await signOut(auth)
         setIsLoading(false)
         return
       }
@@ -146,9 +154,15 @@ export function StudentPortal() {
     setIsLoading(false)
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      if (auth) await signOut(auth)
+    } catch (e) {
+      console.error(e)
+    }
     setIsVerified(false)
-    setPhoneNumber("")
+    setEmail("")
+    setPassword("")
     setStudentName("")
     setCourses([])
     setError("")
@@ -179,11 +193,18 @@ export function StudentPortal() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Input
-                    type="tel"
-                    placeholder="+91 9876543210"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && phoneNumber && handleVerify()}
+                    type="email"
+                    placeholder="Email Address"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="h-12 text-center text-lg bg-input border-border"
+                  />
+                  <Input
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && email && password && handleVerify()}
                     className="h-12 text-center text-lg bg-input border-border"
                   />
                   {error && <p className="text-sm text-destructive">{error}</p>}
@@ -191,22 +212,22 @@ export function StudentPortal() {
 
                 <Button
                   onClick={handleVerify}
-                  disabled={!phoneNumber || isLoading}
+                  disabled={!email || !password || isLoading}
                   className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 font-medium"
                 >
                   {isLoading ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Verifying…
+                      Authenticating…
                     </>
                   ) : (
-                    "Verify & Access"
+                    "Login & Access"
                   )}
                 </Button>
               </div>
 
               <p className="text-xs text-muted-foreground">
-                Use the phone number you registered with
+                Use the credentials provided by your instructor
               </p>
             </div>
           </div>

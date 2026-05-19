@@ -109,6 +109,8 @@ export function AdminDashboard() {
   const [newStudent, setNewStudent] = useState({
     name: "",
     phone: "",
+    email: "",
+    password: "",
     courseId: "",
   })
 
@@ -225,23 +227,43 @@ export function AdminDashboard() {
 
   // ─── Student actions ──────────────────────────────────────────────────────
   const handleRegisterStudent = async () => {
-    if (!newStudent.name || !newStudent.phone || !newStudent.courseId || !db) return
+    if (!newStudent.name || !newStudent.email || !newStudent.password || !newStudent.courseId || !db) return
     setSaving(true)
     const course = courses.find((c) => c.id === newStudent.courseId)
     try {
+      // 1. Create user in Firebase Auth via API
+      const response = await fetch("/api/admin/create-student", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: newStudent.email,
+          password: newStudent.password,
+          displayName: newStudent.name,
+        }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to create authentication account")
+      }
+
+      // 2. Add student record to Firestore
       await addDoc(collection(db, "students"), {
+        uid: data.uid,
         name: newStudent.name,
-        phone: newStudent.phone,
+        phone: newStudent.phone, // Optional phone
+        email: newStudent.email,
         courseId: newStudent.courseId,
         courseName: course?.title || "",
         completed: false,
         certificateUrl: null,
         createdAt: serverTimestamp(),
       })
-      setNewStudent({ name: "", phone: "", courseId: "" })
+      setNewStudent({ name: "", phone: "", email: "", password: "", courseId: "" })
       setShowStudentModal(false)
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error registering student:", err)
+      alert(err.message || "Failed to register student")
     }
     setSaving(false)
   }
@@ -677,12 +699,36 @@ export function AdminDashboard() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="studentPhone" className="text-foreground">Phone Number</Label>
+                <Label htmlFor="studentPhone" className="text-foreground">Phone Number (Optional)</Label>
                 <Input
                   id="studentPhone"
                   value={newStudent.phone}
                   onChange={(e) => setNewStudent({ ...newStudent, phone: e.target.value })}
                   placeholder="+91 9876543210"
+                  className="bg-input border-border"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="studentEmail" className="text-foreground">Email (User ID)</Label>
+                <Input
+                  id="studentEmail"
+                  type="email"
+                  value={newStudent.email}
+                  onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
+                  placeholder="student@example.com"
+                  className="bg-input border-border"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="studentPassword" className="text-foreground">Password</Label>
+                <Input
+                  id="studentPassword"
+                  type="text"
+                  value={newStudent.password}
+                  onChange={(e) => setNewStudent({ ...newStudent, password: e.target.value })}
+                  placeholder="Enter password"
                   className="bg-input border-border"
                 />
               </div>
@@ -704,7 +750,7 @@ export function AdminDashboard() {
 
               <Button
                 onClick={handleRegisterStudent}
-                disabled={saving || !newStudent.name || !newStudent.phone || !newStudent.courseId}
+                disabled={saving || !newStudent.name || !newStudent.email || !newStudent.password || !newStudent.courseId}
                 className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
