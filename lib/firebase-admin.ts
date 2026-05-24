@@ -14,9 +14,10 @@ const hasServiceAccountFile = fs.existsSync(serviceAccountPath)
 
 // Check if Firebase Admin is configured
 const isFirebaseAdminConfigured = hasServiceAccountFile || Boolean(
-  process.env.FIREBASE_ADMIN_PROJECT_ID &&
-  process.env.FIREBASE_ADMIN_CLIENT_EMAIL &&
-  process.env.FIREBASE_ADMIN_PRIVATE_KEY
+  process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT ||
+  (process.env.FIREBASE_ADMIN_PROJECT_ID &&
+   process.env.FIREBASE_ADMIN_CLIENT_EMAIL &&
+   process.env.FIREBASE_ADMIN_PRIVATE_KEY)
 )
 
 let adminApp: App | null = null
@@ -42,6 +43,35 @@ function initializeFirebaseAdmin() {
       adminApp = initializeApp({
         credential: cert(serviceAccount),
       })
+    } else if (process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT) {
+      let rawJson = process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT.trim()
+      
+      // Remove enclosing quotes if present (double or single quotes)
+      if (rawJson.startsWith('"') && rawJson.endsWith('"')) {
+        rawJson = rawJson.slice(1, -1).trim()
+      } else if (rawJson.startsWith("'") && rawJson.endsWith("'")) {
+        rawJson = rawJson.slice(1, -1).trim()
+      }
+
+      // If it looks like base64, decode it
+      if (!rawJson.startsWith('{')) {
+        try {
+          rawJson = Buffer.from(rawJson, 'base64').toString('utf8').trim()
+        } catch (e) {
+          console.error("[Firebase Admin] Failed to decode base64 service account JSON:", e)
+        }
+      }
+
+      try {
+        const serviceAccount = JSON.parse(rawJson)
+        adminApp = initializeApp({
+          credential: cert(serviceAccount),
+        })
+        console.log("[Firebase Admin] Initialized successfully using FIREBASE_ADMIN_SERVICE_ACCOUNT.")
+      } catch (e) {
+        console.error("[Firebase Admin] Failed to parse service account JSON:", e)
+        throw e
+      }
     } else {
       const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID!
       const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL!
