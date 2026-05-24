@@ -62,11 +62,9 @@ function doInitialize(): boolean {
   )
 
   if (!isConfigured) {
-    console.warn(
-      "[Firebase Admin] Not configured. Set FIREBASE_ADMIN_SERVICE_ACCOUNT " +
-      "or individual FIREBASE_ADMIN_* env vars. See .env.example for details."
-    )
-    return false
+    const msg = "[Firebase Admin] Not configured. Set FIREBASE_ADMIN_SERVICE_ACCOUNT or individual FIREBASE_ADMIN_* env vars. See .env.example for details."
+    console.warn(msg)
+    throw new Error(msg)
   }
 
   try {
@@ -141,7 +139,7 @@ function doInitialize(): boolean {
     _adminApp = null
     _adminAuth = null
     _adminDb = null
-    return false
+    throw error
   }
 }
 

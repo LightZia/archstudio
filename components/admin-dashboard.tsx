@@ -250,7 +250,8 @@ export function AdminDashboard() {
 
       const data = await response.json()
       if (!response.ok) {
-        throw new Error(data.error || "Failed to create authentication account")
+        const debugStr = data.debug ? `\n\nDEBUG: ${JSON.stringify(data.debug)}` : ""
+        throw new Error((data.error || "Failed to create authentication account") + debugStr)
       }
 
       // 2. Add student record to Firestore

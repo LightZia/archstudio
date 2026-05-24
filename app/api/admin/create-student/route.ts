@@ -12,13 +12,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const adminAuth = getAdminAuth()
-    if (!adminAuth) {
-      return NextResponse.json(
-        { success: false, error: "Firebase Admin is not configured" },
-        { status: 500 }
-      )
-    }
+    const adminAuth = getAdminAuth()!
 
     // Create the user in Firebase Auth
     const userRecord = await adminAuth.createUser({
@@ -34,7 +28,16 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error("Error creating student auth account:", error)
     return NextResponse.json(
-      { success: false, error: error.message || "Failed to create user" },
+      { 
+        success: false, 
+        error: error.message || "Failed to create user",
+        debug: {
+          has_service_account: !!process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT,
+          has_project_id: !!process.env.FIREBASE_ADMIN_PROJECT_ID,
+          has_client_email: !!process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
+          has_private_key: !!process.env.FIREBASE_ADMIN_PRIVATE_KEY
+        }
+      },
       { status: 500 }
     )
   }
