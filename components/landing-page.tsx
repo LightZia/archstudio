@@ -30,7 +30,7 @@ export function LandingPage({ onStudentLogin, onAdminLogin }: LandingPageProps) 
         className="fixed inset-0 z-0 pointer-events-none transition-transform duration-75 ease-linear flex items-center justify-center overflow-hidden mix-blend-screen opacity-60 w-screen h-screen"
         style={{ transform: "rotate(0deg)" }}
       >
-        <div className="absolute w-full h-full scale-[1.2] origin-center">
+        <div className="absolute w-full h-full scale-[1.2] origin-center translate-x-[8%] md:translate-x-[12%]">
           <Spline scene="https://prod.spline.design/xT6cvvtM0P9Pr-qK/scene.splinecode" />
         </div>
       </div>

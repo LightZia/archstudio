@@ -73,6 +73,8 @@ interface Student {
   id: string
   name: string
   phone: string
+  email: string
+  password?: string
   courseId: string
   courseName: string
   completed: boolean
@@ -260,6 +262,7 @@ export function AdminDashboard() {
         name: newStudent.name,
         phone: newStudent.phone, // Optional phone
         email: newStudent.email,
+        password: newStudent.password, // Store password so admin can see it
         courseId: newStudent.courseId,
         courseName: course?.title || "",
         completed: false,
@@ -509,95 +512,83 @@ export function AdminDashboard() {
                 <p>No students yet. Register your first student.</p>
               </div>
             ) : (
-              <div className="rounded-lg border border-border overflow-hidden overflow-x-auto">
-                <table className="w-full min-w-[700px]">
-                  <thead>
-                    <tr className="border-b border-border bg-secondary/50">
-                      <th className="text-left p-4 text-sm font-medium text-muted-foreground">Name</th>
-                      <th className="text-left p-4 text-sm font-medium text-muted-foreground">Phone Number</th>
-                      <th className="text-left p-4 text-sm font-medium text-muted-foreground">Assigned Course</th>
-                      <th className="text-left p-4 text-sm font-medium text-muted-foreground">Mark Completed</th>
-                      <th className="text-left p-4 text-sm font-medium text-muted-foreground">Certificate</th>
-                      <th className="text-left p-4 text-sm font-medium text-muted-foreground">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {students.map((student, index) => (
-                      <tr
-                        key={student.id}
-                        className={cn(
-                          "border-b border-border last:border-0 transition-colors hover:bg-secondary/30",
-                          index % 2 === 0 ? "bg-card" : "bg-card/50"
-                        )}
-                      >
-                        <td className="p-4">
-                          <p className="font-medium text-foreground">{student.name}</p>
+              <>
+                {/* Mobile view - Cards Layout */}
+                <div className="md:hidden space-y-4">
+                  {students.map((student) => (
+                    <div key={student.id} className="bg-card border border-border rounded-lg p-4 space-y-3 shadow-sm hover:border-primary/20 transition-colors">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-semibold text-foreground text-base">{student.name}</h3>
                           {student.completed && student.completedAt && (
                             <p className="text-xs text-muted-foreground mt-0.5">Completed {student.completedAt}</p>
                           )}
-                        </td>
-                        <td className="p-4 text-muted-foreground">{student.phone}</td>
-                        <td className="p-4">
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-secondary text-sm text-foreground">
+                        </div>
+                        <button
+                          onClick={() => setDeleteConfirm({ isOpen: true, type: "student", id: student.id, title: student.name })}
+                          className="p-2 rounded-md hover:bg-secondary transition-colors text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 text-xs text-muted-foreground">
+                        <div>
+                          <p className="font-medium text-foreground/50">Phone Number</p>
+                          <p className="text-foreground mt-0.5">{student.phone || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="font-medium text-foreground/50">Assigned Course</p>
+                          <span className="inline-block mt-0.5 px-2 py-0.5 rounded-md bg-secondary text-foreground font-medium">
                             {student.courseName}
                           </span>
-                        </td>
-                        <td className="p-4">
-                          <div className="flex items-center gap-3">
-                            <Switch
-                              checked={student.completed}
-                              onCheckedChange={() => handleToggleComplete(student)}
-                            />
-                            {student.completed && (
-                              <span className="text-xs font-medium text-primary flex items-center gap-1">
+                        </div>
+                        <div className="col-span-2">
+                          <p className="font-medium text-foreground/50">Email / ID</p>
+                          <p className="text-foreground mt-0.5 break-all font-mono">{student.email}</p>
+                        </div>
+                        <div className="col-span-2">
+                          <p className="font-medium text-foreground/50">Password</p>
+                          <p className="text-foreground mt-0.5 font-mono bg-secondary/50 px-2 py-1 rounded border border-border inline-block">
+                            {student.password || "existing / hidden"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="pt-3 border-t border-border flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <Switch
+                            checked={student.completed}
+                            onCheckedChange={() => handleToggleComplete(student)}
+                          />
+                          <span className={cn(
+                            "text-xs font-semibold flex items-center gap-1",
+                            student.completed ? "text-primary" : "text-muted-foreground"
+                          )}>
+                            {student.completed ? (
+                              <>
                                 <CheckCircle2 className="h-3.5 w-3.5" /> Done
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="p-4">
+                              </>
+                            ) : "Active"}
+                          </span>
+                        </div>
+
+                        <div>
                           {student.certificateUrl ? (
-                            <div className="flex flex-col gap-1 items-start">
+                            <div className="flex items-center gap-2">
                               <a
                                 href={student.certificateUrl.endsWith('.pdf') ? student.certificateUrl : `${student.certificateUrl}.pdf`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-xs text-primary underline"
+                                className="text-xs text-primary underline font-medium"
                               >
                                 View PDF
                               </a>
-                              <div>
-                                <input
-                                  type="file"
-                                  accept=".pdf"
-                                  className="hidden"
-                                  id={`cert-reupload-${student.id}`}
-                                  onChange={async (e) => {
-                                    const file = e.target.files?.[0]
-                                    if (file) await handleUploadCertificate(file, student.id)
-                                    e.target.value = ""
-                                  }}
-                                />
-                                <label
-                                  htmlFor={`cert-reupload-${student.id}`}
-                                  className="text-[10px] text-muted-foreground hover:text-foreground cursor-pointer underline flex items-center gap-1"
-                                >
-                                  {uploadingCertFor === student.id ? (
-                                    <Loader2 className="h-3 w-3 animate-spin" />
-                                  ) : (
-                                    <Upload className="h-3 w-3" />
-                                  )}
-                                  Re-upload
-                                </label>
-                              </div>
-                            </div>
-                          ) : (
-                            <div>
                               <input
                                 type="file"
                                 accept=".pdf"
                                 className="hidden"
-                                id={`cert-upload-${student.id}`}
+                                id={`cert-reupload-mobile-${student.id}`}
                                 onChange={async (e) => {
                                   const file = e.target.files?.[0]
                                   if (file) await handleUploadCertificate(file, student.id)
@@ -605,9 +596,34 @@ export function AdminDashboard() {
                                 }}
                               />
                               <label
-                                htmlFor={`cert-upload-${student.id}`}
+                                htmlFor={`cert-reupload-mobile-${student.id}`}
+                                className="text-[10px] text-muted-foreground hover:text-foreground cursor-pointer underline flex items-center gap-1"
+                              >
+                                {uploadingCertFor === student.id ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <Upload className="h-3 w-3" />
+                                )}
+                                Re-upload
+                              </label>
+                            </div>
+                          ) : (
+                            <div>
+                              <input
+                                type="file"
+                                accept=".pdf"
+                                className="hidden"
+                                id={`cert-upload-mobile-${student.id}`}
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0]
+                                  if (file) await handleUploadCertificate(file, student.id)
+                                  e.target.value = ""
+                                }}
+                              />
+                              <label
+                                htmlFor={`cert-upload-mobile-${student.id}`}
                                 className={cn(
-                                  "inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium cursor-pointer transition-colors",
+                                  "inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-medium cursor-pointer transition-colors",
                                   "bg-secondary hover:bg-secondary/80 text-foreground"
                                 )}
                               >
@@ -616,24 +632,154 @@ export function AdminDashboard() {
                                 ) : (
                                   <Upload className="h-3.5 w-3.5" />
                                 )}
-                                Upload
+                                Upload PDF
                               </label>
                             </div>
                           )}
-                        </td>
-                        <td className="p-4">
-                          <button
-                            onClick={() => setDeleteConfirm({ isOpen: true, type: "student", id: student.id, title: student.name })}
-                            className="p-1.5 rounded-md hover:bg-secondary transition-colors"
-                          >
-                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                          </button>
-                        </td>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Desktop view - Table Layout */}
+                <div className="hidden md:block rounded-lg border border-border overflow-hidden overflow-x-auto">
+                  <table className="w-full min-w-[800px]">
+                    <thead>
+                      <tr className="border-b border-border bg-secondary/50">
+                        <th className="text-left p-4 text-sm font-medium text-muted-foreground">Name</th>
+                        <th className="text-left p-4 text-sm font-medium text-muted-foreground">Phone Number</th>
+                        <th className="text-left p-4 text-sm font-medium text-muted-foreground">Assigned Course</th>
+                        <th className="text-left p-4 text-sm font-medium text-muted-foreground">Credentials (ID & Pwd)</th>
+                        <th className="text-left p-4 text-sm font-medium text-muted-foreground">Mark Completed</th>
+                        <th className="text-left p-4 text-sm font-medium text-muted-foreground">Certificate</th>
+                        <th className="text-left p-4 text-sm font-medium text-muted-foreground">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {students.map((student, index) => (
+                        <tr
+                          key={student.id}
+                          className={cn(
+                            "border-b border-border last:border-0 transition-colors hover:bg-secondary/30",
+                            index % 2 === 0 ? "bg-card" : "bg-card/50"
+                          )}
+                        >
+                          <td className="p-4">
+                            <p className="font-medium text-foreground">{student.name}</p>
+                            {student.completed && student.completedAt && (
+                              <p className="text-xs text-muted-foreground mt-0.5">Completed {student.completedAt}</p>
+                            )}
+                          </td>
+                          <td className="p-4 text-muted-foreground">{student.phone || "—"}</td>
+                          <td className="p-4">
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-secondary text-sm text-foreground">
+                              {student.courseName}
+                            </span>
+                          </td>
+                          <td className="p-4 space-y-1">
+                            <p className="text-xs font-mono text-foreground break-all">{student.email}</p>
+                            {student.password ? (
+                              <span className="inline-block text-[10px] font-mono text-muted-foreground bg-secondary/50 px-1 py-0.5 rounded border border-border">
+                                pwd: {student.password}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-muted-foreground/50">pwd: existing/hidden</span>
+                            )}
+                          </td>
+                          <td className="p-4">
+                            <div className="flex items-center gap-3">
+                              <Switch
+                                  checked={student.completed}
+                                  onCheckedChange={() => handleToggleComplete(student)}
+                              />
+                              {student.completed && (
+                                <span className="text-xs font-medium text-primary flex items-center gap-1">
+                                  <CheckCircle2 className="h-3.5 w-3.5" /> Done
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            {student.certificateUrl ? (
+                              <div className="flex flex-col gap-1 items-start">
+                                <a
+                                  href={student.certificateUrl.endsWith('.pdf') ? student.certificateUrl : `${student.certificateUrl}.pdf`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-primary underline"
+                                >
+                                  View PDF
+                                </a>
+                                <div>
+                                  <input
+                                    type="file"
+                                    accept=".pdf"
+                                    className="hidden"
+                                    id={`cert-reupload-${student.id}`}
+                                    onChange={async (e) => {
+                                      const file = e.target.files?.[0]
+                                      if (file) await handleUploadCertificate(file, student.id)
+                                      e.target.value = ""
+                                    }}
+                                  />
+                                  <label
+                                    htmlFor={`cert-reupload-${student.id}`}
+                                    className="text-[10px] text-muted-foreground hover:text-foreground cursor-pointer underline flex items-center gap-1"
+                                  >
+                                    {uploadingCertFor === student.id ? (
+                                      <Loader2 className="h-3 w-3 animate-spin" />
+                                    ) : (
+                                      <Upload className="h-3 w-3" />
+                                    )}
+                                    Re-upload
+                                  </label>
+                                </div>
+                              </div>
+                            ) : (
+                              <div>
+                                <input
+                                  type="file"
+                                  accept=".pdf"
+                                  className="hidden"
+                                  id={`cert-upload-${student.id}`}
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0]
+                                    if (file) await handleUploadCertificate(file, student.id)
+                                    e.target.value = ""
+                                  }}
+                                />
+                                <label
+                                  htmlFor={`cert-upload-${student.id}`}
+                                  className={cn(
+                                    "inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium cursor-pointer transition-colors",
+                                    "bg-secondary hover:bg-secondary/80 text-foreground"
+                                  )}
+                                >
+                                  {uploadingCertFor === student.id ? (
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                  ) : (
+                                    <Upload className="h-3.5 w-3.5" />
+                                  )}
+                                  Upload
+                                </label>
+                              </div>
+                            )}
+                          </td>
+                          <td className="p-4">
+                            <button
+                              onClick={() => setDeleteConfirm({ isOpen: true, type: "student", id: student.id, title: student.name })}
+                              className="p-1.5 rounded-md hover:bg-secondary transition-colors"
+                            >
+                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
           </div>
         )}
