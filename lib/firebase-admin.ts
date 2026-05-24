@@ -146,6 +146,7 @@ function doInitialize(): boolean {
 
   } catch (error) {
     console.error("[Firebase Admin] Initialization failed:", error)
+    _initialized = false
     _adminApp = null
     _adminAuth = null
     _adminDb = null
