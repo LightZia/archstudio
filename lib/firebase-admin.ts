@@ -13,13 +13,15 @@ import path from 'path'
 // Try loading service account from file first
 const serviceAccountPath = path.join(process.cwd(), 'serviceaccountkey.json')
 
-// Check if Firebase Admin is configured (cheap check, no initialization)
-const isFirebaseAdminConfigured = fs.existsSync(serviceAccountPath) || Boolean(
-  process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT ||
-  (process.env.FIREBASE_ADMIN_PROJECT_ID &&
-   process.env.FIREBASE_ADMIN_CLIENT_EMAIL &&
-   process.env.FIREBASE_ADMIN_PRIVATE_KEY)
-)
+// Runtime check for whether Firebase Admin can be configured
+function isFirebaseAdminConfigured(): boolean {
+  return fs.existsSync(serviceAccountPath) || Boolean(
+    process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT ||
+    (process.env.FIREBASE_ADMIN_PROJECT_ID &&
+     process.env.FIREBASE_ADMIN_CLIENT_EMAIL &&
+     process.env.FIREBASE_ADMIN_PRIVATE_KEY)
+  )
+}
 
 let _adminApp: App | null = null
 let _adminAuth: Auth | null = null
@@ -51,7 +53,15 @@ function doInitialize(): boolean {
 
   const hasServiceAccountFile = fs.existsSync(serviceAccountPath)
 
-  if (!hasServiceAccountFile && !isFirebaseAdminConfigured) {
+  // Check configuration at RUNTIME (not module-load time)
+  const isConfigured = hasServiceAccountFile || Boolean(
+    process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT ||
+    (process.env.FIREBASE_ADMIN_PROJECT_ID &&
+     process.env.FIREBASE_ADMIN_CLIENT_EMAIL &&
+     process.env.FIREBASE_ADMIN_PRIVATE_KEY)
+  )
+
+  if (!isConfigured) {
     console.warn(
       "[Firebase Admin] Not configured. Set FIREBASE_ADMIN_SERVICE_ACCOUNT " +
       "or individual FIREBASE_ADMIN_* env vars. See .env.example for details."
