@@ -11,11 +11,14 @@ interface LandingPageProps {
 }
 
 export function LandingPage({ onStudentLogin, onAdminLogin }: LandingPageProps) {
-  const [scrollY, setScrollY] = useState(0)
-
   useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY)
-    window.addEventListener("scroll", handleScroll)
+    const bg = document.getElementById("spline-bg")
+    const handleScroll = () => {
+      if (bg) {
+        bg.style.transform = `rotate(${window.scrollY * 0.05}deg)`
+      }
+    }
+    window.addEventListener("scroll", handleScroll, { passive: true })
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
@@ -23,10 +26,11 @@ export function LandingPage({ onStudentLogin, onAdminLogin }: LandingPageProps) 
     <div className="min-h-screen bg-transparent relative overflow-hidden">
       {/* 3D Canvas Background */}
       <div 
-        className="fixed inset-0 z-0 pointer-events-none transition-transform duration-75 ease-linear flex items-center justify-center overflow-hidden mix-blend-screen opacity-60"
-        style={{ transform: `rotate(${scrollY * 0.05}deg)` }}
+        id="spline-bg"
+        className="fixed inset-0 z-0 pointer-events-none transition-transform duration-75 ease-linear flex items-center justify-center overflow-hidden mix-blend-screen opacity-60 w-screen h-screen"
+        style={{ transform: "rotate(0deg)" }}
       >
-        <div className="absolute w-[1200px] h-[1200px] scale-[1.2] origin-center">
+        <div className="absolute w-full h-full scale-[1.2] origin-center">
           <Spline scene="https://prod.spline.design/xT6cvvtM0P9Pr-qK/scene.splinecode" />
         </div>
       </div>

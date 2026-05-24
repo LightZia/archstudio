@@ -92,6 +92,12 @@ export function AdminDashboard() {
   const [showStudentModal, setShowStudentModal] = useState(false)
   const [editingCourse, setEditingCourse] = useState<Course | null>(null)
   const [uploadingCertFor, setUploadingCertFor] = useState<string | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    isOpen: boolean
+    type: "course" | "student"
+    id: string
+    title: string
+  } | null>(null)
 
   // New course form
   const [newCourse, setNewCourse] = useState({
@@ -318,8 +324,8 @@ export function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-background flex">
-      {/* Sidebar */}
-      <aside className="w-64 border-r border-border bg-sidebar fixed left-0 top-16 bottom-0 overflow-y-auto">
+      {/* Sidebar - Desktop Only */}
+      <aside className="hidden md:block w-64 border-r border-border bg-sidebar fixed left-0 top-16 bottom-0 overflow-y-auto">
         <div className="p-6">
           <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase mb-4">
             Management
@@ -371,7 +377,25 @@ export function AdminDashboard() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 ml-64 p-8">
+      <main className="flex-1 md:ml-64 p-4 md:p-8">
+        {/* Mobile Navigation Tabs */}
+        <div className="md:hidden flex gap-2 border-b border-border pb-4 mb-6 overflow-x-auto">
+          {sidebarItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap",
+                activeTab === item.id
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-secondary"
+              )}
+            >
+              <item.icon className="h-4 w-4" />
+              {item.label}
+            </button>
+          ))}
+        </div>
 
         {/* ── Courses Tab ───────────────────────────────────────────── */}
         {activeTab === "courses" && (
@@ -428,7 +452,7 @@ export function AdminDashboard() {
                             <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
                           </button>
                           <button
-                            onClick={() => handleDeleteCourse(course.id)}
+                            onClick={() => setDeleteConfirm({ isOpen: true, type: "course", id: course.id, title: course.title })}
                             className="p-1.5 rounded-md hover:bg-secondary transition-colors"
                           >
                             <Trash2 className="h-3.5 w-3.5 text-destructive" />
@@ -484,8 +508,8 @@ export function AdminDashboard() {
                 <p>No students yet. Register your first student.</p>
               </div>
             ) : (
-              <div className="rounded-lg border border-border overflow-hidden">
-                <table className="w-full">
+              <div className="rounded-lg border border-border overflow-hidden overflow-x-auto">
+                <table className="w-full min-w-[700px]">
                   <thead>
                     <tr className="border-b border-border bg-secondary/50">
                       <th className="text-left p-4 text-sm font-medium text-muted-foreground">Name</th>
@@ -532,14 +556,40 @@ export function AdminDashboard() {
                         </td>
                         <td className="p-4">
                           {student.certificateUrl ? (
-                            <a
-                              href={student.certificateUrl.endsWith('.pdf') ? student.certificateUrl : `${student.certificateUrl}.pdf`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs text-primary underline"
-                            >
-                              View PDF
-                            </a>
+                            <div className="flex flex-col gap-1 items-start">
+                              <a
+                                href={student.certificateUrl.endsWith('.pdf') ? student.certificateUrl : `${student.certificateUrl}.pdf`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-primary underline"
+                              >
+                                View PDF
+                              </a>
+                              <div>
+                                <input
+                                  type="file"
+                                  accept=".pdf"
+                                  className="hidden"
+                                  id={`cert-reupload-${student.id}`}
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0]
+                                    if (file) await handleUploadCertificate(file, student.id)
+                                    e.target.value = ""
+                                  }}
+                                />
+                                <label
+                                  htmlFor={`cert-reupload-${student.id}`}
+                                  className="text-[10px] text-muted-foreground hover:text-foreground cursor-pointer underline flex items-center gap-1"
+                                >
+                                  {uploadingCertFor === student.id ? (
+                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                  ) : (
+                                    <Upload className="h-3 w-3" />
+                                  )}
+                                  Re-upload
+                                </label>
+                              </div>
+                            </div>
                           ) : (
                             <div>
                               <input
@@ -572,7 +622,7 @@ export function AdminDashboard() {
                         </td>
                         <td className="p-4">
                           <button
-                            onClick={() => handleDeleteStudent(student.id)}
+                            onClick={() => setDeleteConfirm({ isOpen: true, type: "student", id: student.id, title: student.name })}
                             className="p-1.5 rounded-md hover:bg-secondary transition-colors"
                           >
                             <Trash2 className="h-3.5 w-3.5 text-destructive" />
@@ -755,6 +805,37 @@ export function AdminDashboard() {
               >
                 {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 Register Student
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteConfirm && deleteConfirm.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setDeleteConfirm(null)} />
+          <div className="relative bg-card border border-border rounded-lg w-full max-w-md p-6 shadow-2xl">
+            <h2 className="text-xl font-bold text-foreground mb-4">Confirm Deletion</h2>
+            <p className="text-muted-foreground mb-6">
+              Are you sure you want to delete the {deleteConfirm.type} <strong className="text-foreground">"{deleteConfirm.title}"</strong>? This action cannot be undone.
+            </p>
+            <div className="flex gap-4 justify-end">
+              <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                onClick={async () => {
+                  if (deleteConfirm.type === "course") {
+                    await handleDeleteCourse(deleteConfirm.id)
+                  } else {
+                    await handleDeleteStudent(deleteConfirm.id)
+                  }
+                  setDeleteConfirm(null)
+                }}
+              >
+                Delete
               </Button>
             </div>
           </div>
