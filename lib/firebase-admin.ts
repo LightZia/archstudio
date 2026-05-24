@@ -40,6 +40,9 @@ function initializeFirebaseAdmin() {
   if (getApps().length === 0) {
     if (hasServiceAccountFile) {
       const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'))
+      if (serviceAccount.private_key) {
+        serviceAccount.private_key = serviceAccount.private_key.replace(/\r/g, "").replace(/\\n/g, "\n")
+      }
       adminApp = initializeApp({
         credential: cert(serviceAccount),
       })
@@ -64,6 +67,9 @@ function initializeFirebaseAdmin() {
 
       try {
         const serviceAccount = JSON.parse(rawJson)
+        if (serviceAccount.private_key) {
+          serviceAccount.private_key = serviceAccount.private_key.replace(/\r/g, "").replace(/\\n/g, "\n")
+        }
         adminApp = initializeApp({
           credential: cert(serviceAccount),
         })
