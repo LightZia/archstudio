@@ -44,17 +44,20 @@ function cleanPrivateKey(key: string): string {
     cleaned = cleaned.replace(/\\n/g, "\n")
   }
 
-  // If there are still no newlines, Netlify might have collapsed them into spaces
-  if (!cleaned.includes('\n')) {
-    const match = cleaned.match(/-----BEGIN PRIVATE KEY-----\s*(.*?)\s*-----END PRIVATE KEY-----/)
-    if (match) {
-      const base64part = match[1].replace(/\s+/g, '')
-      const lines = base64part.match(/.{1,64}/g) || []
-      cleaned = `-----BEGIN PRIVATE KEY-----\n${lines.join('\n')}\n-----END PRIVATE KEY-----`
-    }
+  cleaned = cleaned.trim()
+  if ((cleaned.startsWith('"') && cleaned.endsWith('"')) ||
+      (cleaned.startsWith("'") && cleaned.endsWith("'"))) {
+    cleaned = cleaned.slice(1, -1).trim()
   }
 
-  return cleaned.trim()
+  // Remove header and footer with any surrounding dashes/spaces
+  let base64part = cleaned
+    .replace(/-*\s*BEGIN[^-]*KEY\s*-*/gi, "")
+    .replace(/-*\s*END[^-]*KEY\s*-*/gi, "")
+    .replace(/[^A-Za-z0-9+/=]/g, "") // remove all non-base64 characters (newlines, spaces, dashes)
+
+  const lines = base64part.match(/.{1,64}/g) || []
+  return `-----BEGIN PRIVATE KEY-----\n${lines.join('\n')}\n-----END PRIVATE KEY-----\n`
 }
 
 function doInitialize(): boolean {
