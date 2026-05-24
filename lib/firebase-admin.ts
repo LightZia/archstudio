@@ -45,16 +45,41 @@ function initializeFirebaseAdmin() {
     } else {
       const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID!
       const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL!
-      let privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY!
+      let privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY || ""
 
-      // Remove enclosing quotes if present (double or single quotes)
+      console.log("[Firebase Admin] Raw Private Key length:", privateKey.length)
+      console.log("[Firebase Admin] Raw Private Key starts with:", JSON.stringify(privateKey.substring(0, 30)))
+      console.log("[Firebase Admin] Raw Private Key ends with:", JSON.stringify(privateKey.substring(Math.max(0, privateKey.length - 30))))
+
+      // Trim outer whitespace
+      privateKey = privateKey.trim()
+
+      // Handle cases where the private key might be wrapped in quotes
       if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
-        privateKey = privateKey.slice(1, -1)
+        privateKey = privateKey.slice(1, -1).trim()
       } else if (privateKey.startsWith("'") && privateKey.endsWith("'")) {
-        privateKey = privateKey.slice(1, -1)
+        privateKey = privateKey.slice(1, -1).trim()
       }
 
+      // Replace literal \n or escaped \n
       privateKey = privateKey.replace(/\\n/g, "\n")
+
+      // Support base64 encoded private key
+      if (!privateKey.startsWith('-----') && !privateKey.includes('\n') && privateKey.length > 100) {
+        try {
+          const decoded = Buffer.from(privateKey, 'base64').toString('utf8').trim()
+          if (decoded.includes('-----BEGIN PRIVATE KEY-----')) {
+            privateKey = decoded
+            console.log("[Firebase Admin] Decoded private key from base64. Length:", privateKey.length)
+          }
+        } catch (e) {
+          console.error("[Firebase Admin] Failed to decode base64 key:", e)
+        }
+      }
+
+      console.log("[Firebase Admin] Cleaned Private Key length:", privateKey.length)
+      console.log("[Firebase Admin] Cleaned Private Key starts with:", JSON.stringify(privateKey.substring(0, 30)))
+      console.log("[Firebase Admin] Cleaned Private Key ends with:", JSON.stringify(privateKey.substring(Math.max(0, privateKey.length - 30))))
 
       adminApp = initializeApp({
         credential: cert({
