@@ -11,11 +11,8 @@ interface LandingPageProps {
 }
 
 export function LandingPage({ onStudentLogin, onAdminLogin }: LandingPageProps) {
-<<<<<<< HEAD
   const [splineLoaded, setSplineLoaded] = useState(false)
 
-=======
->>>>>>> 60716d0239c3fcc2543cb5900d357fc6f87c28be
   useEffect(() => {
     const bg = document.getElementById("spline-bg")
     const handleScroll = () => {
@@ -29,7 +26,6 @@ export function LandingPage({ onStudentLogin, onAdminLogin }: LandingPageProps) 
 
   return (
     <div className="min-h-screen bg-transparent relative overflow-hidden">
-<<<<<<< HEAD
 
       {/* ─── Architectural Blueprint Grid Background ─── */}
       <div className="fixed inset-0 z-0 pointer-events-none">
@@ -173,43 +169,17 @@ export function LandingPage({ onStudentLogin, onAdminLogin }: LandingPageProps) 
               />
             </div>
 
-=======
-      {/* 3D Canvas Background */}
-      <div 
-        id="spline-bg"
-        className="fixed inset-0 z-0 pointer-events-none transition-transform duration-75 ease-linear flex items-center justify-center overflow-hidden mix-blend-screen opacity-60 w-screen h-screen"
-        style={{ transform: "rotate(0deg)" }}
-      >
-        <div className="absolute w-full h-full scale-[1.2] origin-center translate-x-[8%] md:translate-x-[12%]">
-          <Spline scene="https://prod.spline.design/xT6cvvtM0P9Pr-qK/scene.splinecode" />
-        </div>
-      </div>
-
-      {/* Hero Section */}
-      <section className="relative z-20 min-h-[90vh] flex items-center pt-20 pb-16">
-        <div className="mx-auto w-full max-w-4xl px-6 text-center">
-          <div className="space-y-8 flex flex-col items-center">
-            
->>>>>>> 60716d0239c3fcc2543cb5900d357fc6f87c28be
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary mb-4">
               <Award className="h-4 w-4" />
               <span className="text-sm font-medium tracking-wide uppercase">Offline Course Completion</span>
             </div>
 
             <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight text-foreground leading-tight text-balance">
-<<<<<<< HEAD
               ARCH STUDIO
               <br />
               <span className="text-primary">Certificate Portal</span>
             </h1>
 
-=======
-              ArchStudio
-              <br />
-              <span className="text-primary">Certificate Portal</span>
-            </h1>
-            
->>>>>>> 60716d0239c3fcc2543cb5900d357fc6f87c28be
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed">
               Access and download your premium certificates for offline architectural design courses. Log in with the credentials provided by your instructor.
             </p>
@@ -229,20 +199,12 @@ export function LandingPage({ onStudentLogin, onAdminLogin }: LandingPageProps) 
                 Admin Access
               </Button>
             </div>
-<<<<<<< HEAD
 
-=======
-            
->>>>>>> 60716d0239c3fcc2543cb5900d357fc6f87c28be
           </div>
         </div>
       </section>
 
-<<<<<<< HEAD
       {/* ─── Features Section ─── */}
-=======
-      {/* Features Section */}
->>>>>>> 60716d0239c3fcc2543cb5900d357fc6f87c28be
       <section className="relative z-20 py-24 border-t border-border/50 bg-background/60 backdrop-blur-md">
         <div className="mx-auto max-w-5xl px-6">
           <div className="grid md:grid-cols-3 gap-8 text-center">
@@ -271,7 +233,6 @@ export function LandingPage({ onStudentLogin, onAdminLogin }: LandingPageProps) 
         </div>
       </section>
 
-<<<<<<< HEAD
       {/* ─── Footer ─── */}
       <footer className="relative z-20 py-8 border-t border-border/50 bg-background/80 backdrop-blur-md">
         <div className="flex items-center justify-between px-32 flex-col gap-10">
@@ -299,16 +260,6 @@ export function LandingPage({ onStudentLogin, onAdminLogin }: LandingPageProps) 
           50% { top: 90%; }
         }
       `}</style>
-=======
-      {/* Footer */}
-      <footer className="relative z-20 py-8 border-t border-border/50 bg-background/80 backdrop-blur-md">
-        <div className="mx-auto max-w-7xl px-6 flex flex-col items-center text-center gap-4">
-          <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} ArchStudio. All rights reserved.
-          </p>
-        </div>
-      </footer>
->>>>>>> 60716d0239c3fcc2543cb5900d357fc6f87c28be
     </div>
   )
 }
