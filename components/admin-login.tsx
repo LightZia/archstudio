@@ -58,6 +58,7 @@ export function AdminLogin({ onLogin, onBack }: AdminLoginProps) {
         </button>
 
         {/* Login card */}
+<<<<<<< HEAD
         <div className="rounded-lg border border-border bg-card p-8 shadow-xl relative overflow-hidden">
           {/* Brand accent strip */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/30 via-primary to-primary/30" />
@@ -69,6 +70,12 @@ export function AdminLogin({ onLogin, onBack }: AdminLoginProps) {
                 alt="ArchStudio Logo" 
                 className="h-16 w-16 object-contain drop-shadow-[0_0_4px_rgba(255,255,255,0.2)]" 
               />
+=======
+        <div className="rounded-lg border border-border bg-card p-8">
+          <div className="mb-8 text-center space-y-2">
+            <div className="mx-auto h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+              <Lock className="h-6 w-6 text-primary" />
+>>>>>>> 60716d0239c3fcc2543cb5900d357fc6f87c28be
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground">
               Admin Access
