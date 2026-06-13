@@ -126,7 +126,7 @@ export function LandingPage({ onStudentLogin, onAdminLogin }: LandingPageProps) 
       {/* ─── 3D Canvas Background (Spline) ─── */}
       <div
         id="spline-bg"
-        className="fixed inset-2 z-[2] pointer-events-none transition-transform duration-75 ease-linear flex items-center justify-center overflow-hidden w-screen h-screen"
+        className="fixed inset-0 z-[2] pointer-events-none transition-transform duration-75 ease-linear flex items-center justify-center overflow-hidden w-full h-full"
         style={{
           transform: "rotate(0deg)",
           opacity: splineLoaded ? 0.5 : 0,
@@ -135,7 +135,7 @@ export function LandingPage({ onStudentLogin, onAdminLogin }: LandingPageProps) 
           mixBlendMode: 'screen',
         }}
       >
-        <div className="absolute w-full h-full scale-[1.2] origin-center translate-x-[8%] md:translate-x-[12%]">
+        <div className="absolute w-full h-full scale-[3] sm:scale-[2] md:scale-[1.2] origin-center translate-x-0 md:translate-x-[12%]">
           <Spline
             scene="https://prod.spline.design/xT6cvvtM0P9Pr-qK/scene.splinecode"
             onLoad={() => setSplineLoaded(true)}
@@ -235,20 +235,22 @@ export function LandingPage({ onStudentLogin, onAdminLogin }: LandingPageProps) 
 
       {/* ─── Footer ─── */}
       <footer className="relative z-20 py-8 border-t border-border/50 bg-background/80 backdrop-blur-md">
-        <div className="flex items-center justify-between px-32 flex-col gap-10">
-          <p className="text-sm text-muted-foreground">
+        <div className="flex flex-col md:flex-row items-center justify-between px-6 md:px-32 gap-6 w-full max-w-7xl mx-auto">
+          <p className="text-sm text-muted-foreground text-center md:text-left">
             © {new Date().getFullYear()} ArchStudio. All rights reserved.
           </p>
-          <div className="flex items-center gap-0">
-            <span className="text-muted-foreground text-2xl w-20 font-[French_Script_MT]">Creation Collaboration</span>
-            <span className="text-muted-foreground text-5xl relative top-[-10px] right-[20px] font-[French_Script_MT]">&</span>
-            <a href="https://yashverma2628.github.io/yashkecode/" target="_blank" rel="noopener noreferrer">
-              <img src="/yashlogo.png" alt="YashKaCode Logo" className="h-15 w-auto" />
-            </a>
-            {/* <span className="text-muted-foreground text-sm">in collaboration with</span> */}
-            <a href="https://lightzia.netlify.app/" target="_blank" rel="noopener noreferrer">
-              <img src="/logolight.png" alt="LightZia Logo" className="h-10 w-auto relative top-[-10px]" />
-            </a>
+          <div className="flex flex-wrap items-center justify-center gap-3 md:gap-6">
+            <span className="text-muted-foreground text-lg md:text-xl font-serif italic tracking-wide flex items-baseline gap-1.5">
+              Creation <span className="text-xl md:text-2xl">&</span> Collaboration
+            </span>
+            <div className="flex items-center gap-4">
+              <a href="https://yashverma2628.github.io/yashkecode/" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity flex items-center">
+                <img src="/yashlogo.png" alt="YashKaCode Logo" className="h-8 md:h-10 w-auto object-contain" />
+              </a>
+              <a href="https://lightzia.netlify.app/" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity flex items-center">
+                <img src="/logolight.png" alt="LightZia Logo" className="h-6 md:h-8 w-auto object-contain -translate-y-[2px]" />
+              </a>
+            </div>
           </div>
         </div>
       </footer>
